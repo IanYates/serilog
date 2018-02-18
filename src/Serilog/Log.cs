@@ -40,7 +40,12 @@ namespace Serilog
     /// </remarks>
     public static class Log
     {
-        static ILogger _logger = new SilentLogger();
+        /// <summary>
+        /// Initialise a SilentLogger to be the initial value of _logger and expose this as None
+        /// </summary>
+        static ILogger _noneLogger = new SilentLogger();
+
+        static ILogger _logger = _noneLogger;
 
         /// <summary>
         /// The globally-shared logger.
@@ -61,7 +66,7 @@ namespace Serilog
         /// </summary>
         public static void CloseAndFlush()
         {
-            ILogger logger = Interlocked.Exchange(ref _logger, new SilentLogger());
+            ILogger logger = Interlocked.Exchange(ref _logger, _noneLogger);
 
             (logger as IDisposable)?.Dispose();
         }
@@ -1200,6 +1205,17 @@ namespace Serilog
         public static bool BindProperty(string propertyName, object value, bool destructureObjects, out LogEventProperty property)
         {
             return Logger.BindProperty(propertyName, value, destructureObjects, out property);
+        }
+
+        /// <summary>
+        /// An <see cref="ILogger"/> instance that silently ignores all log messages
+        /// </summary>
+        public static ILogger None
+        {
+            get
+            {
+                return _noneLogger;
+            }
         }
     }
 }
